@@ -78,7 +78,6 @@ else:
 import cgi
 import os
 import posixpath
-import macpath
 import ntpath
 import argparse
 import mimetypes
@@ -109,9 +108,12 @@ def fullpath(path):
 
 def basename(path):
     "Extract the file base name (some browsers send the full file path)."
-    for mod in posixpath, macpath, ntpath:
-        path = mod.basename(path)
-    return path
+    return os.path.basename(path)
+
+def get_file_list(path):
+    
+    #return os.listdir(path)
+    return [f for f in os.listdir(path) if ( os.path.isfile(f) and not f.startswith('.') ) ]
 
 def check_auth(method):
     "Wraps methods on the request handler to require simple auth checks."
@@ -270,9 +272,17 @@ class HTTPUploadHandler(httpserver.BaseHTTPRequestHandler):
             dico["divpicture"] = self.divpicture
         else:
             dico["divpicture"] = ''
+        
+        #dico["file_list"] = get_file_list("./")
+        files = ''   
+        for i in get_file_list("./"):
+            files += "<li><a target='_blank' href='{0}' >{0}</a></li>".format(i)
+        dico["file_list"] = files
+
         # -- Possibly provide download links
         # TODO: Sanity-check for injections
         links = ''
+
         if self.publish_files:
             for name in self.published_files():
                 encoded_name = urllibparse.quote(_encode_str_if_py2(name))
@@ -486,6 +496,7 @@ a {color: #4499cc; text-decoration: none;}
           letter-spacing: -2px; line-height: 50px; color: #aaa;}
 #sending {display: none; font-style: italic;}
 #sending .text {padding-top: 10px; color: #bbb; font-size: 0.8em;}
+#file_list ul li {list-style: none; margin-left: 21px; text-align: left; padding: 10px 10px; }
 #wrapform {height: 90px; padding-top:40px;}
 #progress {display: inline;  border-collapse: separate; empty-cells: show;
            border-spacing: 24px 0; padding: 0; vertical-align: bottom;}
@@ -510,6 +521,14 @@ userinfo = '''
 <div id="userinfo">
   %(message)s
   %(divpicture)s
+</div>
+'''
+
+file_list = '''
+<div id="file_list">
+  <ul>
+  %(file_list)s
+  </ul>
 </div>
 '''
 
@@ -561,6 +580,7 @@ function onunload() {
   </div>
 </div>
 ''' + userinfo + '''
+''' + file_list + '''
 %(files)s
 </div>
 </body>
@@ -582,6 +602,7 @@ successtmpl = '''
   </div>
 </div>
 ''' + userinfo + '''
+''' + file_list + '''
 </div>
 </body>
 </html>
@@ -602,6 +623,7 @@ errortmpl = '''
   </div>
 </div>
 ''' + userinfo + '''
+''' + file_list + '''
 </div>
 </body>
 </html>
