@@ -86,6 +86,8 @@ import tempfile
 import socket
 import base64
 import functools
+import string
+import random
 
 
 def _decode_str_if_py2(inputstr, encoding='utf-8'):
@@ -122,7 +124,9 @@ def check_auth(method):
         if self.auth:
             # TODO: Between minor versions this handles str/bytes differently
             received = self.get_case_insensitive_header('Authorization', None)
-            expected = 'Basic ' + base64.b64encode(self.auth)
+
+            expected = 'Basic ' + base64.b64encode((self.auth).encode()).decode('ascii')
+            
             # TODO: Timing attack?
             if received != expected:
                 self.send_response(401)
@@ -419,7 +423,6 @@ class ThreadedHTTPServer(socketserver.ThreadingMixIn,
         exctype = sys.exc_info()[0]
         if not exctype is Abort:
             httpserver.HTTPServer.handle_error(self, request, client_address)
-
 
 def run(hostname='',
         port=80,
@@ -1042,8 +1045,6 @@ def parse_args(cmd=None, ignore_defaults=False):
                         help='set the picture')
     parser.add_argument('--publish-files', '--dl', action='store_true', default=False,
                         help='provide download links')
-    parser.add_argument('-a', '--auth', type=str, default='',
-                        help='set the authentication credentials, in form USER:PASS')
     parser.add_argument('--ssl', type=str, default='',
                         help='set up https using the certificate file')
     parser.add_argument('--chmod', type=str, default=None,
@@ -1065,11 +1066,6 @@ def parse_args(cmd=None, ignore_defaults=False):
         os.remove(filename)
         print('Deleted ' + filename)
         sys.exit(0)
-    if args.auth:
-        if ':' not in args.auth:
-            print("Error: authentication credentials must be "
-                  "specified as USER:PASSWORD")
-            sys.exit(1)
     if args.ssl:
         if not os.path.isfile(args.ssl):
             print("PEM file not found: '{0}'".format(args.ssl))
@@ -1091,6 +1087,8 @@ def parse_args(cmd=None, ignore_defaults=False):
                 del d_args[k]
     return d_args
 
+def generate_auth(size=6, chars=string.ascii_uppercase + string.ascii_lowercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
 
 def main():
     "Encapsulating main prevents scope leakage and pleases linters."
@@ -1117,8 +1115,14 @@ def main():
     print("Files will be uploaded to {0}\n".format(args['directory']))
     proto = 'https' if args['ssl'] else 'http'
     localhost_ip = os.popen("hostname -I | awk '{print $1}'").read().rstrip()
-    print("HTTP server starting...",
-          "Check it out at {0}://{2}:{1}".format(proto, args['port'], localhost_ip))
+    username = generate_auth()    
+    password = generate_auth()
+    print("HTTP server starting...")
+    print("")
+    print( "账号(u): {0}".format(username) )
+    print( "密码(p): {0}".format(password) )
+    print( "Check it out at: {0}://{2}:{1}".format(proto, args['port'], localhost_ip))
+    print("")
     try:
         run(port=args['port'],
             certfile=args['ssl'],
@@ -1127,7 +1131,7 @@ def main():
             directory=args['directory'],
             file_mode=args['chmod'],
             publish_files=args['publish_files'],
-            auth=args['auth'],
+            auth="{0}:{1}".format(username, password),
             templates=default_templates,
             localisations=default_localisations)
     except KeyboardInterrupt:
