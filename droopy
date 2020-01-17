@@ -1094,8 +1094,9 @@ def main():
         print("Options saved in {0}".format(cfg))
     print("Files will be uploaded to {0}\n".format(args['directory']))
     proto = 'https' if args['ssl'] else 'http'
+    localhost_ip = os.system("hostname -I | awk '{print $1}'")
     print("HTTP server starting...",
-          "Check it out at {0}://localhost:{1}".format(proto, args['port']))
+          "Check it out at {0}://"+localhost_ip+":{1}".format(proto, args['port']))
     try:
         run(port=args['port'],
             certfile=args['ssl'],
