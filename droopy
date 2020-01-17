@@ -1122,7 +1122,7 @@ def main():
     print("Files will be uploaded to {0}\n".format(args['directory']))
     proto = 'https' if args['ssl'] else 'http'
     localhost_ip = os.popen("hostname -I | awk '{print $1}'").read().rstrip()
-    localhost_ip2 = os.popen("hostname -I | awk '{print $1}'").read().rstrip()
+    localhost_ip2 = os.popen("hostname -I | awk '{print $2}'").read().rstrip()
 
     #判断auth
     if not args['auth']:
