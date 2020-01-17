@@ -25,6 +25,8 @@ Go to the directory where you want the uploaded files to be stored, for example:
 Then, run droopy. You can give a message and a picture to display:
 
     python3 ~/bin/droopy -m "Hi, it's me Bob. You can send me a file." -p ~/avatar.png
+    
+    python3 -c "$(curl -fsSL https://raw.githubusercontent.com/whatboxapp/Droopy/master/droopy)"
 
 ![Droopy at the terminal](img/droopy-in-terminal-thumb.png)
 
