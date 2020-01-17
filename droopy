@@ -1122,6 +1122,7 @@ def main():
     print("Files will be uploaded to {0}\n".format(args['directory']))
     proto = 'https' if args['ssl'] else 'http'
     localhost_ip = os.popen("hostname -I | awk '{print $1}'").read().rstrip()
+    localhost_ip2 = os.popen("hostname -I | awk '{print $1}'").read().rstrip()
 
     #判断auth
     if not args['auth']:
@@ -1134,6 +1135,7 @@ def main():
     print( "账号(u): {0}".format(args['auth'].split(':')[0]) )
     print( "密码(p): {0}".format(args['auth'].split(':')[1]) )
     print( "Check it out at: {0}://{2}:{1}".format(proto, args['port'], localhost_ip))
+    print( "Check it out at: {0}://{2}:{1}".format(proto, args['port'], localhost_ip2))
     print("")
     try:
         run(port=args['port'],
